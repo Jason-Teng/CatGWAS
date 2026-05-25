@@ -171,8 +171,8 @@ nominal.exact.scan <- function(y, zz, kk, x0, output_file = NULL) {
   # print(elapsed_time)
   
   www <- as.data.frame(www)
-  colnames(www) <- c("SNP", "V1", "V2", "V3", "Iter", "Error",
-                     "a1", "a2", "a3", "effect1", "effect2", "effect3", "Wald", "p")
+  colnames(www) <- c("SNP", paste0("V", 1:(c - 1)), "Iter", "Error",
+                     paste0("a", 1:(c - 1)), paste0("effect", 1:(c - 1)), "Wald", "p")
   
   if (!is.null(output_file)) {
     write.csv(x = www, file = output_file, row.names = FALSE)
