@@ -181,6 +181,6 @@ nominal.exact.scan <- function(y, zz, kk, x0, output_file = NULL) {
   return(list(
     results = www,
     error_snps = error_snps,
-    elapsed_time = elapsed_time
+    # elapsed_time = elapsed_time
   ))
 }
