@@ -17,7 +17,8 @@ categorical_gwas(
   ids = NULL,
   outdir = NULL,
   maxiter = 100,
-  minerr = 1e-08
+  minerr = 1e-08,
+  n_cores = 1L
 )
 }
 \arguments{
@@ -27,9 +28,31 @@ categorical_gwas(
 
 \item{kk}{Kinship matrix.}
 
+\item{x0}{Optional fixed-effect design matrix.}
+
 \item{trait_type}{Either "nominal" or "ordinal".}
 
 \item{method}{Character vector of methods.}
+
+\item{null_method}{Null-model fitting method.}
+
+\item{null_fit}{Precomputed null model object (optional).}
+
+\item{vc}{Precomputed variance components (optional).}
+
+\item{ids}{Individual identifiers (optional).}
+
+\item{outdir}{Directory for optional output files.}
+
+\item{maxiter}{Maximum iterations for iterative fitting.}
+
+\item{minerr}{Convergence tolerance.}
+
+\item{n_cores}{Number of cores for parallel score-test scanning.
+Must be a single positive integer. Use \code{1L} (the default) for
+serial computation. Parallelisation uses base-R PSOCK clusters and
+therefore works on Windows, macOS, and Linux. The null model is always
+fitted serially; only the per-marker score calculations are parallelised.}
 }
 \value{
 A list of GWAS results.

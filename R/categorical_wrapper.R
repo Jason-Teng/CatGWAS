@@ -3,8 +3,21 @@
 #' @param y Phenotype object.
 #' @param zz Marker genotype matrix, markers in rows and individuals in columns.
 #' @param kk Kinship matrix.
+#' @param x0 Optional fixed-effect design matrix.
 #' @param trait_type Either "nominal" or "ordinal".
 #' @param method Character vector of methods.
+#' @param null_method Null-model fitting method.
+#' @param null_fit Precomputed null model object (optional).
+#' @param vc Precomputed variance components (optional).
+#' @param ids Individual identifiers (optional).
+#' @param outdir Directory for optional output files.
+#' @param maxiter Maximum iterations for iterative fitting.
+#' @param minerr Convergence tolerance.
+#' @param n_cores Number of cores for parallel score-test scanning.
+#'   Must be a single positive integer. Use \code{1L} (the default) for
+#'   serial computation. Parallelisation uses base-R PSOCK clusters and
+#'   therefore works on Windows, macOS, and Linux. The null model is always
+#'   fitted serially; only the per-marker score calculations are parallelised.
 #' @return A list of GWAS results.
 #' @export
 categorical_gwas <- function(y,
@@ -19,9 +32,11 @@ categorical_gwas <- function(y,
                              ids = NULL,
                              outdir = NULL,
                              maxiter = 100,
-                             minerr = 1e-8) {
+                             minerr = 1e-8,
+                             n_cores = 1L) {
 
   trait_type <- match.arg(trait_type)
+  n_cores <- .validate_n_cores(n_cores)
 
   if (trait_type == "ordinal") {
     if (is.null(method)) {
@@ -43,7 +58,8 @@ categorical_gwas <- function(y,
       ids = ids,
       outdir = outdir,
       maxiter = maxiter,
-      minerr = minerr
+      minerr = minerr,
+      n_cores = n_cores
     ))
   }
 
@@ -78,7 +94,8 @@ categorical_gwas <- function(y,
         ids = ids,
         outdir = outdir,
         maxiter = maxiter,
-        minerr = minerr
+        minerr = minerr,
+        n_cores = n_cores
       )
 
       nominal_results[[one_method]] <- fit$result

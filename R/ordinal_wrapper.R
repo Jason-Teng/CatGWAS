@@ -24,11 +24,13 @@ ordinal_gwas <- function(y,
                          ids = NULL,
                          outdir = NULL,
                          maxiter = 100,
-                         minerr = 1e-8) {
+                         minerr = 1e-8,
+                         n_cores = 1L) {
 
   allowed_methods <- c("score", "p3d", "psr", "psrsd", "exact", "glm")
   method <- match.arg(method, choices = allowed_methods, several.ok = TRUE)
   null_method <- match.arg(null_method)
+  n_cores <- .validate_n_cores(n_cores)
 
   Yfull <- ordinal_make_Y(y)
   zz <- as.matrix(zz)
@@ -88,7 +90,8 @@ ordinal_gwas <- function(y,
         x0 = x0,
         c = c,
         n = n,
-        outdir = outdir
+        outdir = outdir,
+        n_cores = n_cores
       )
     }
 

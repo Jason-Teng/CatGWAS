@@ -15,4 +15,7 @@ LazyData: true
 URL: https://github.com/Jason-Teng/categoricalGWAS
 BugReports: https://github.com/Jason-Teng/categoricalGWAS/issues
 Imports:
-    Matrix
+    Matrix,
+    parallel
+Suggests:
+    testthat (>= 3.0.0)

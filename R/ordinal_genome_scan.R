@@ -9,7 +9,8 @@
 #    Uses pseudo-response and residual covariance from the null model.
 #    Ordinal model has one SNP effect shared across thresholds, so df = 1.
 # ============================================================
-scan_score_ordinal <- function(ps, rr, par, kk, zz, x0, c, n = NULL, outdir = NULL) {
+scan_score_ordinal <- function(ps, rr, par, kk, zz, x0, c, n = NULL, outdir = NULL,
+                               n_cores = 1L) {
   if (is.null(n)) n <- nrow(kk)
   m <- nrow(zz)
   J <- matrix(1, c - 1, 1)
@@ -18,22 +19,31 @@ scan_score_ordinal <- function(ps, rr, par, kk, zz, x0, c, n = NULL, outdir = NU
   vi <- solve(h %*% kk %*% t(h) * par + rr)
   P <- vi - vi %*% x0 %*% solve(t(x0) %*% vi %*% x0) %*% t(x0) %*% vi
 
-  out <- NULL
-  for (k in 1:m) {
+  .score_one_ordinal <- function(k) {
     z <- as.matrix(zz[k, ]) %x% J
     zPz <- t(z) %*% P %*% z
     zPy <- t(z) %*% P %*% ps
-
     zPz_inv <- solve(zPz)
     score <- t(zPy) %*% zPz_inv %*% zPy
     effect <- zPz_inv %*% zPy
     stderr <- sqrt(diag(zPz_inv))
     p <- 1 - pchisq(score, 1)
-
-    out <- rbind(out, c(k, as.numeric(effect), as.numeric(stderr), as.numeric(score), as.numeric(p)))
+    c(k, as.numeric(effect), as.numeric(stderr), as.numeric(score), as.numeric(p))
   }
 
-  out <- as.data.frame(out)
+  if (n_cores == 1L) {
+    rows <- lapply(seq_len(m), .score_one_ordinal)
+  } else {
+    cl <- parallel::makeCluster(n_cores, type = "PSOCK")
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    parallel::clusterExport(cl,
+      varlist = c("zz", "J", "P", "ps"),
+      envir = environment()
+    )
+    rows <- parallel::parLapply(cl, seq_len(m), .score_one_ordinal)
+  }
+
+  out <- as.data.frame(do.call(rbind, rows))
   colnames(out) <- c("SNP", "Effect", "StdErr", "Score", "p")
 
   if (!is.null(outdir)) {
