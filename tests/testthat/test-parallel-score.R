@@ -52,18 +52,18 @@ load_imf2 <- function() {
 # 1. Validation tests
 # =======================================================================
 test_that(".validate_n_cores rejects invalid values", {
-  expect_error(categoricalGWAS:::.validate_n_cores(0L),   regexp = "positive integer")
-  expect_error(categoricalGWAS:::.validate_n_cores(-1L),  regexp = "positive integer")
-  expect_error(categoricalGWAS:::.validate_n_cores(NA),   regexp = "positive integer")
-  expect_error(categoricalGWAS:::.validate_n_cores("two"), regexp = "positive integer")
-  expect_error(categoricalGWAS:::.validate_n_cores(c(1L, 2L)), regexp = "single positive integer")
+  expect_error(CatGWAS:::.validate_n_cores(0L),   regexp = "positive integer")
+  expect_error(CatGWAS:::.validate_n_cores(-1L),  regexp = "positive integer")
+  expect_error(CatGWAS:::.validate_n_cores(NA),   regexp = "positive integer")
+  expect_error(CatGWAS:::.validate_n_cores("two"), regexp = "positive integer")
+  expect_error(CatGWAS:::.validate_n_cores(c(1L, 2L)), regexp = "single positive integer")
 })
 
 test_that(".validate_n_cores accepts valid values", {
-  expect_equal(categoricalGWAS:::.validate_n_cores(1L),  1L)
-  expect_equal(categoricalGWAS:::.validate_n_cores(2L),  2L)
-  expect_equal(categoricalGWAS:::.validate_n_cores(1.0), 1L)  # coerced
-  expect_equal(categoricalGWAS:::.validate_n_cores(4),   4L)
+  expect_equal(CatGWAS:::.validate_n_cores(1L),  1L)
+  expect_equal(CatGWAS:::.validate_n_cores(2L),  2L)
+  expect_equal(CatGWAS:::.validate_n_cores(1.0), 1L)  # coerced
+  expect_equal(CatGWAS:::.validate_n_cores(4),   4L)
 })
 
 test_that("categorical_gwas errors on invalid n_cores", {

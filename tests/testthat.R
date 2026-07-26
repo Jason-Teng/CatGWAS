@@ -1,4 +1,4 @@
 library(testthat)
-library(categoricalGWAS)
+library(CatGWAS)
 
-test_check("categoricalGWAS")
+test_check("CatGWAS")
