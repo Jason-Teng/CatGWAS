@@ -1,6 +1,6 @@
-# categoricalGWAS
+# CatGWAS
 
-**categoricalGWAS** provides a unified framework for genome-wide association studies (GWAS) with **categorical phenotypes**, including both **nominal** and **ordinal** traits.
+**CatGWAS** provides a unified framework for genome-wide association studies (GWAS) with **categorical phenotypes**, including both **nominal** and **ordinal** traits.
 
 The package implements multiple methods under a consistent interface, allowing flexible comparison and scalable analysis.
 
@@ -19,14 +19,14 @@ The package currently supports several GWAS testing strategies under a common in
 | `glm` | Generalized linear model baseline without kinship correction | Yes | Yes |
 | `exact` | Marker-specific model fitting | Yes | Yes |
 
-Some methods require a null model, while others can be run directly. When needed, `categoricalGWAS` fits the null model automatically unless a precomputed null model or variance component estimate is supplied.
+Some methods require a null model, while others can be run directly. When needed, `CatGWAS` fits the null model automatically unless a precomputed null model or variance component estimate is supplied.
 
 ---
 ## Null-model variance component estimation
 
 For mixed-model GWAS, several marker-scanning methods require variance components to be estimated under the null model before testing markers.
 
-For nominal traits, `categoricalGWAS` currently supports two null-model variance-component strategies:
+For nominal traits, `CatGWAS` currently supports two null-model variance-component strategies:
 
 | Null method | Description | Speed | Bias |
 |---|---|---:|---:|
@@ -44,8 +44,8 @@ This makes the Laplace approach especially useful when the goal is to obtain mor
 
 ```r
 install.packages("remotes")
-remotes::install_github("Jason-Teng/categoricalGWAS")
-library(categoricalGWAS)
+remotes::install_github("Jason-Teng/CatGWAS")
+library(CatGWAS)
 ```
 
 ---
@@ -204,13 +204,13 @@ head(res_nom$results$score)
 
 ## Citation
 
-If you use `categoricalGWAS`, please cite the related manuscript once available.
+If you use `CatGWAS`, please cite the related manuscript once available.
 
 For now, you may cite the GitHub repository:
 
 ```text
-Teng, C.-S. categoricalGWAS: Genome-wide association studies for categorical phenotypes.
-GitHub repository: https://github.com/Jason-Teng/categoricalGWAS
+Teng, C.-S. CatGWAS: Genome-wide association studies for categorical phenotypes.
+GitHub repository: https://github.com/Jason-Teng/CatGWAS
 ```
 
 ---
