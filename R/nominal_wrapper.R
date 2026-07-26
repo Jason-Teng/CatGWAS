@@ -105,15 +105,17 @@ fit_nominal_null <- function(y, x0, kk, ids = NULL,
 nominal_gwas <- function(y, zz, kk = NULL, x0 = NULL,
                          method = c("score", "p3d", "psr", "exact", "glm"),
                          null_method = c("pseudo", "laplace"),
-                         null_fit = NULL, # Option 1: Provide full null object
-                         vc = NULL,       # Option 2: Provide just variance components
+                         null_fit = NULL,
+                         vc = NULL,
                          ids = NULL,
                          outdir = NULL,
                          maxiter = 100,
-                         minerr = 1e-8) {
+                         minerr = 1e-8,
+                         n_cores = 1L) {
 
   method <- match.arg(method)
   null_method <- match.arg(null_method)
+  n_cores <- .validate_n_cores(n_cores)
 
   Yfull <- nominal_make_Y(y)
   n <- nrow(Yfull)
@@ -206,10 +208,11 @@ nominal_gwas <- function(y, zz, kk = NULL, x0 = NULL,
       zz = zz,
       x0 = x0,
       c = c,
-      outdir = outdir
+      outdir = outdir,
+      n_cores = n_cores
     )
     elapsed_time = Sys.time() - start_time
-    message(paste("GWAS scanning Time (exact):", format(elapsed_time)))
+    message(paste("GWAS scanning Time (score):", format(elapsed_time)))
   }
 
   if (method == "p3d") {

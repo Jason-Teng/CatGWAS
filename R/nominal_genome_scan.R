@@ -1,34 +1,39 @@
 # ============================================================
 # 1. SCORE METHOD
 # ============================================================
-scan_score_nominal <- function(ps, rr, par, kk, zz, x0, c, outdir = NULL) {
+scan_score_nominal <- function(ps, rr, par, kk, zz, x0, c, outdir = NULL,
+                               n_cores = 1L) {
   m <- nrow(zz)
 
   vi <- solve(kk %x% diag(par) + rr)
   P  <- vi - vi %*% x0 %*% solve(t(x0) %*% vi %*% x0) %*% t(x0) %*% vi
 
-  # start_time <- Sys.time()
-  out <- NULL
-
-  for (k in 1:m) {
+  .score_one_nominal <- function(k) {
     z <- as.matrix(zz[k, ] %x% diag(c - 1))
     zPz <- t(z) %*% P %*% z
     zPy <- t(z) %*% P %*% ps
     yPz <- t(zPy)
-
     zPz_inv <- solve(zPz)
     score <- yPz %*% zPz_inv %*% zPy
     effect <- zPz_inv %*% zPy
     stderr <- sqrt(diag(zPz_inv))
     p <- 1 - pchisq(score, c - 1)
-
-    out <- rbind(out, c(k, as.numeric(effect), stderr, as.numeric(score), as.numeric(p)))
+    c(k, as.numeric(effect), stderr, as.numeric(score), as.numeric(p))
   }
 
-  # end_time <- Sys.time()
-  # print(end_time - start_time)
+  if (n_cores == 1L) {
+    rows <- lapply(seq_len(m), .score_one_nominal)
+  } else {
+    cl <- parallel::makeCluster(n_cores, type = "PSOCK")
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    parallel::clusterExport(cl,
+      varlist = c("zz", "P", "ps", "c"),
+      envir = environment()
+    )
+    rows <- parallel::parLapply(cl, seq_len(m), .score_one_nominal)
+  }
 
-  out <- as.data.frame(out)
+  out <- as.data.frame(do.call(rbind, rows))
 
   colnames(out) <- c(
     "SNP",

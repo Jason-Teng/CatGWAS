@@ -100,8 +100,42 @@ res_nom <- categorical_gwas(
 res_nom$results$score
 ```
 
+## Parallel score-test scanning
+
+The `score` method can run the per-marker calculations in parallel using
+base-R PSOCK clusters, which work on Windows, macOS, and Linux.
+
+```r
+# Serial (default)
+res_serial <- categorical_gwas(
+  y = ordinal, zz = zz, kk = kk,
+  trait_type = "ordinal", method = "score",
+  n_cores = 1L
+)
+
+# Parallel – 4 workers; null model is still fitted serially
+res_parallel <- categorical_gwas(
+  y = ordinal, zz = zz, kk = kk,
+  trait_type = "ordinal", method = "score",
+  n_cores = 4L
+)
+```
+
+Key points:
+
+* `n_cores = 1L` (the default) uses the existing serial loop – output is
+  identical to previous package versions.
+* `n_cores > 1` spawns PSOCK workers.  The null model is **always** fitted
+  once in the main process before workers are created; only the
+  per-marker score calculations are distributed.
+* You must supply `n_cores` explicitly.  The package never auto-detects
+  available cores.
+* `n_cores` is validated on entry – a clear error is raised for non-positive
+  or non-integer values.
+* Worker clusters are always stopped on exit via `on.exit()`.
+
 ---
-## Using external variance component estimates
+
 
 If variance components have already been estimated, for example from a Laplace approximation or another null-model routine, they can be supplied directly when supported by the selected method.
 
