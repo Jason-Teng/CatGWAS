@@ -103,7 +103,7 @@ Main interface. All analyses go through this function.
 | `n_cores` | Cores for parallel **score** scanning (default `1L`) |
 
 ## Arguments
-#### `method`
+### `method`
 
 | Value | Description | Nominal | Ordinal |
 |---|---|---:|---:|
@@ -116,7 +116,7 @@ Main interface. All analyses go through this function.
 
 `score`, `p3d`, `psr`, and `psrsd` need a null model (`kk` required). `glm` and `exact` do not. If `null_fit` / `vc` are not supplied, the null is fitted automatically.
 
-#### `null_method` (nominal only)
+### `null_method` (nominal only)
 
 Default is `"pseudo"`. Ordinal traits always use pseudo and ignore this argument.
 
@@ -125,7 +125,7 @@ Default is `"pseudo"`. Ordinal traits always use pseudo and ignore this argument
 | `"pseudo"` | Pseudo-response variance-component estimation (default) |
 | `"laplace"` | Laplace approximation |
 
-#### `link` (ordinal only)
+### `link` (ordinal only)
 
 | Value | Model |
 |---|---|
@@ -134,7 +134,7 @@ Default is `"pseudo"`. Ordinal traits always use pseudo and ignore this argument
 
 Used in the ordinal null model and in P3D, GLM, and exact. Score, PSR, and PSRSD inherit it from the null.
 
-#### `n_cores`
+### `n_cores`
 
 Used by `method = "score"` only. `1L` is serial. `n_cores > 1` uses PSOCK workers. The null model is always fitted serially; only per-marker score calculations are parallelised.
 
