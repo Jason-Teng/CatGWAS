@@ -14,6 +14,55 @@ library(CatGWAS)
 
 ---
 
+## Examples
+
+```r
+data(z)
+data(kk)
+data(nominal)
+data(ordinal)
+zz <- z[1:5, ]
+
+# Ordinal, default cprobit
+res_ord <- categorical_gwas(
+  y = ordinal, zz = zz, kk = kk,
+  trait_type = "ordinal",
+  method = c("score", "psrsd")
+)
+
+# Ordinal, cumulative logit, parallel score
+res_ord_clogit <- categorical_gwas(
+  y = ordinal, zz = zz, kk = kk,
+  trait_type = "ordinal",
+  method = "score",
+  link = "clogit",
+  n_cores = 4L
+)
+
+# Nominal, Laplace null
+res_nom <- categorical_gwas(
+  y = nominal, zz = zz, kk = kk,
+  trait_type = "nominal",
+  method = c("score", "psr"),
+  null_method = "laplace"
+)
+
+# Reuse a precomputed variance component
+res_nom_vc <- categorical_gwas(
+  y = nominal, zz = zz, kk = kk,
+  trait_type = "nominal",
+  method = c("score", "psr"),
+  vc = vc
+)
+```
+
+```r
+res_ord$results$score
+res_nom$results$score
+```
+
+---
+
 ## Functions
 
 ### `categorical_gwas()`
@@ -25,7 +74,6 @@ Main interface. All analyses go through this function.
 | `y` | Phenotype (factor or category-indicator matrix) |
 | `zz` | Genotype matrix, **markers × individuals** |
 | `kk` | Kinship matrix, **individuals × individuals** |
-| `x0` | Optional fixed-effect design matrix |
 | `trait_type` | `"ordinal"` or `"nominal"` |
 | `method` | One or more scanning methods (see below) |
 | `null_method` | Null-model variance-component method (see below) |
@@ -33,8 +81,6 @@ Main interface. All analyses go through this function.
 | `vc` | Precomputed variance component (optional) |
 | `link` | Ordinal cumulative link (ignored for nominal) |
 | `n_cores` | Cores for parallel **score** scanning (default `1L`) |
-| `maxiter`, `minerr` | Iteration control |
-| `ids`, `outdir` | Optional IDs and output directory |
 
 #### `method`
 
@@ -70,54 +116,6 @@ Used in the ordinal null model and in P3D, GLM, and exact. Score, PSR, and PSRSD
 #### `n_cores`
 
 Used by `method = "score"` only. `1L` is serial. `n_cores > 1` uses PSOCK workers (Windows / macOS / Linux). The null model is always fitted serially; only per-marker score calculations are parallelised. Works with either ordinal link.
-
----
-
-## Examples
-
-```r
-data(z)
-data(kk)
-data(nominal)
-data(ordinal)
-zz <- z[1:5, ]
-
-# Ordinal, default cprobit
-res_ord <- categorical_gwas(
-  y = ordinal, zz = zz, kk = kk,
-  trait_type = "ordinal",
-  method = c("score", "psrsd")
-)
-
-# Ordinal, cumulative logit, parallel score
-res_ord_clogit <- categorical_gwas(
-  y = ordinal, zz = zz, kk = kk,
-  trait_type = "ordinal",
-  method = "score",
-  link = "clogit",
-  n_cores = 4L
-)
-
-# Nominal
-res_nom <- categorical_gwas(
-  y = nominal, zz = zz, kk = kk,
-  trait_type = "nominal",
-  method = c("score", "psr")
-)
-
-# Reuse a precomputed variance component
-res_nom_vc <- categorical_gwas(
-  y = nominal, zz = zz, kk = kk,
-  trait_type = "nominal",
-  method = c("score", "psr"),
-  vc = vc
-)
-```
-
-```r
-res_ord$results$score
-res_nom$results$score
-```
 
 ---
 
