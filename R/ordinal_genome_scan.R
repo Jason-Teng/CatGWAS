@@ -59,11 +59,14 @@ scan_score_ordinal <- function(ps, rr, par, kk, zz, x0, c, n = NULL, outdir = NU
 #    Refits the ordinal pseudo-response model marker by marker.
 # ============================================================
 scan_p3d_ordinal <- function(y, kk, zz, x0, par, c, n = NULL,
-                             maxiter = 100, minerr = 1e-8, outdir = NULL) {
+                             maxiter = 100, minerr = 1e-8, outdir = NULL,
+                             link = "cprobit") {
   if (is.null(n)) n <- nrow(y)
   if (!requireNamespace("Matrix", quietly = TRUE)) {
     stop("Package 'Matrix' is required.")
   }
+
+  lf <- ordinal_link(link)
 
   J <- matrix(1, c - 1, 1)
   h <- diag(n) %x% J
@@ -93,7 +96,7 @@ scan_p3d_ordinal <- function(y, kk, zz, x0, par, c, n = NULL,
         eta_j <- g0[j] + z_marker[j] * gamma
 
         for (kkk in 1:c) {
-          mu[kkk] <- pnorm(a[kkk + 1] + eta_j) - pnorm(a[kkk] + eta_j)
+          mu[kkk] <- lf$p(a[kkk + 1] + eta_j) - lf$p(a[kkk] + eta_j)
           if (mu[kkk] < 1e-4) mu[kkk] <- 1e-4
           if (mu[kkk] > 1 - 1e-4) mu[kkk] <- 1 - 1e-4
         }
@@ -102,12 +105,12 @@ scan_p3d_ordinal <- function(y, kk, zz, x0, par, c, n = NULL,
         d <- matrix(0, c, c - 1)
         if (c > 2) {
           for (kkk in 2:(c - 1)) {
-            d[kkk, kkk - 1] <- -dnorm(a[kkk] + eta_j)
-            d[kkk, kkk] <- dnorm(a[kkk + 1] + eta_j)
+            d[kkk, kkk - 1] <- -lf$d(a[kkk] + eta_j)
+            d[kkk, kkk] <- lf$d(a[kkk + 1] + eta_j)
           }
         }
-        d[1, 1] <- dnorm(a[2] + eta_j)
-        d[c, c - 1] <- -dnorm(a[c] + eta_j)
+        d[1, 1] <- lf$d(a[2] + eta_j)
+        d[c, c - 1] <- -lf$d(a[c] + eta_j)
 
         w <- diag(1 / as.numeric(mu))
         dwd <- solve(t(d) %*% w %*% d + diag(c - 1) * 1e-5)
@@ -283,10 +286,13 @@ scan_psrsd_ordinal <- function(ps, rr, kk, zz, x0, c, n = NULL,
 #    Fixed-effect ordinal model without kinship control.
 # ============================================================
 ordinal_glm_one <- function(z, y, x, c, n,
-                            maxiter = 100, minerr = 1e-8) {
+                            maxiter = 100, minerr = 1e-8,
+                            link = "cprobit") {
   if (!requireNamespace("Matrix", quietly = TRUE)) {
     stop("Package 'Matrix' is required.")
   }
+
+  lf <- ordinal_link(link)
 
   a <- matrix(0, c + 1, 1)
   mu <- matrix(0, 1, c)
@@ -308,7 +314,7 @@ ordinal_glm_one <- function(z, y, x, c, n,
     for (j in 1:n) {
       eta_j <- z[j] * g0
       for (kkk in 1:c) {
-        mu[kkk] <- pnorm(a[kkk + 1] + eta_j) - pnorm(a[kkk] + eta_j)
+        mu[kkk] <- lf$p(a[kkk + 1] + eta_j) - lf$p(a[kkk] + eta_j)
         if (mu[kkk] < 1e-4) mu[kkk] <- 1e-4
         if (mu[kkk] > 1 - 1e-4) mu[kkk] <- 1 - 1e-4
       }
@@ -317,12 +323,12 @@ ordinal_glm_one <- function(z, y, x, c, n,
       d <- matrix(0, c, c - 1)
       if (c > 2) {
         for (kkk in 2:(c - 1)) {
-          d[kkk, kkk - 1] <- -dnorm(a[kkk] + eta_j)
-          d[kkk, kkk] <- dnorm(a[kkk + 1] + eta_j)
+          d[kkk, kkk - 1] <- -lf$d(a[kkk] + eta_j)
+          d[kkk, kkk] <- lf$d(a[kkk + 1] + eta_j)
         }
       }
-      d[1, 1] <- dnorm(a[2] + eta_j)
-      d[c, c - 1] <- -dnorm(a[c] + eta_j)
+      d[1, 1] <- lf$d(a[2] + eta_j)
+      d[c, c - 1] <- -lf$d(a[c] + eta_j)
 
       w <- diag(1 / as.numeric(mu))
       dwd <- solve(t(d) %*% w %*% d + diag(c - 1) * 1e-5)
@@ -354,7 +360,8 @@ ordinal_glm_one <- function(z, y, x, c, n,
   c(iter, err, as.numeric(b[1:(c - 1)]), effect, stderr, wald, p)
 }
 
-scan_glm_ordinal <- function(zz, y, x0, c = NULL, n = NULL, outdir = NULL) {
+scan_glm_ordinal <- function(zz, y, x0, c = NULL, n = NULL, outdir = NULL,
+                             link = "cprobit") {
   if (is.null(c)) c <- ncol(y)
   if (is.null(n)) n <- nrow(y)
 
@@ -363,7 +370,7 @@ scan_glm_ordinal <- function(zz, y, x0, c = NULL, n = NULL, outdir = NULL) {
   for (k in 1:nrow(zz)) {
     z <- as.matrix(zz[k, ])
     x <- cbind(x0, z %x% J)
-    one <- ordinal_glm_one(z = z, y = y, x = x, c = c, n = n)
+    one <- ordinal_glm_one(z = z, y = y, x = x, c = c, n = n, link = link)
     out <- rbind(out, c(k, one))
   }
 

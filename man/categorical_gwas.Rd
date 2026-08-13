@@ -18,7 +18,8 @@ categorical_gwas(
   outdir = NULL,
   maxiter = 100,
   minerr = 1e-08,
-  n_cores = 1L
+  n_cores = 1L,
+  link = "cprobit"
 )
 }
 \arguments{
@@ -53,6 +54,13 @@ Must be a single positive integer. Use \code{1L} (the default) for
 serial computation. Parallelisation uses base-R PSOCK clusters and
 therefore works on Windows, macOS, and Linux. The null model is always
 fitted serially; only the per-marker score calculations are parallelised.}
+
+\item{link}{Ordinal cumulative link. Used only when
+\code{trait_type = "ordinal"}. \code{"cprobit"} (the default) is the
+cumulative probit model; \code{"clogit"} is the cumulative logit /
+proportional-odds model. \code{"probit"} is accepted as an alias of
+\code{"cprobit"}. \code{"logit"} is accepted as an alias of
+\code{"clogit"}. Ignored for nominal traits.}
 }
 \value{
 A list of GWAS results.

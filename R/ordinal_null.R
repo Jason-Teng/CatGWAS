@@ -49,10 +49,12 @@ ordinal_compact_rr <- function(rr, n, q, ids = NULL) {
 # ============================================================
 # Inner loop: ordinal IBLUP / pseudo-response generation
 # ============================================================
-iblup_ordinal <- function(par, y, x, kk, maxiter = 100, minerr = 1e-8) {
+iblup_ordinal <- function(par, y, x, kk, maxiter = 100, minerr = 1e-8,
+                          link = "cprobit") {
 
   y <- as.matrix(y)
   kk <- as.matrix(kk)
+  lf <- ordinal_link(link)
 
   c <- ncol(y)
   n <- nrow(y)
@@ -86,7 +88,7 @@ iblup_ordinal <- function(par, y, x, kk, maxiter = 100, minerr = 1e-8) {
     for (j in seq_len(n)) {
 
       for (k in seq_len(c)) {
-        mu[k] <- pnorm(a[k + 1] + g0[j]) - pnorm(a[k] + g0[j])
+        mu[k] <- lf$p(a[k + 1] + g0[j]) - lf$p(a[k] + g0[j])
         if (mu[k] < 1e-4) mu[k] <- 1e-4
         if (mu[k] > (1 - 1e-4)) mu[k] <- 1 - 1e-4
       }
@@ -97,13 +99,13 @@ iblup_ordinal <- function(par, y, x, kk, maxiter = 100, minerr = 1e-8) {
 
       if (c > 2) {
         for (k in 2:q) {
-          d[k, k - 1] <- -dnorm(a[k] + g0[j])
-          d[k, k] <- dnorm(a[k + 1] + g0[j])
+          d[k, k - 1] <- -lf$d(a[k] + g0[j])
+          d[k, k] <- lf$d(a[k + 1] + g0[j])
         }
       }
 
-      d[1, 1] <- dnorm(a[2] + g0[j])
-      d[c, q] <- -dnorm(a[c] + g0[j])
+      d[1, 1] <- lf$d(a[2] + g0[j])
+      d[c, q] <- -lf$d(a[c] + g0[j])
 
       w <- diag(1 / c(mu))
       dwd <- solve(t(d) %*% w %*% d + diag(q) * 1e-5)
@@ -195,7 +197,8 @@ fit_ordinal_outer <- function(y,
                               minerr = 1e-8,
                               lower = -1e5,
                               upper = 1e5,
-                              outdir = NULL) {
+                              outdir = NULL,
+                              link = "cprobit") {
 
   y <- as.matrix(y)
   kk <- as.matrix(kk)
@@ -222,7 +225,8 @@ fit_ordinal_outer <- function(y,
       x = x,
       kk = kk,
       maxiter = maxiter,
-      minerr = minerr
+      minerr = minerr,
+      link = link
     )
 
     ps <- pseudo$ps
@@ -259,7 +263,8 @@ fit_ordinal_outer <- function(y,
     x = x,
     kk = kk,
     maxiter = maxiter,
-    minerr = minerr
+    minerr = minerr,
+    link = link
   )
 
   elapsed_time <- Sys.time() - start_time
@@ -293,7 +298,8 @@ fit_ordinal_outer <- function(y,
     g = pseudo$g,
     trace = trace,
     elapsed_time = elapsed_time,
-    optim = parm
+    optim = parm,
+    link = ordinal_link(link)$name
   )
 }
 
@@ -308,9 +314,11 @@ fit_ordinal_null <- function(y,
                              vc = NULL,
                              maxiter = 100,
                              minerr = 1e-8,
-                             outdir = NULL) {
+                             outdir = NULL,
+                             link = "cprobit") {
 
   null_method <- match.arg(null_method)
+  link <- ordinal_link(link)$name
 
   Yfull <- ordinal_make_Y(y)
   n <- nrow(Yfull)
@@ -331,7 +339,8 @@ fit_ordinal_null <- function(y,
       x = x0,
       kk = kk,
       maxiter = maxiter,
-      minerr = minerr
+      minerr = minerr,
+      link = link
     )
 
     message(paste("Null linearization time:", format(Sys.time() - null_start)))
@@ -349,7 +358,8 @@ fit_ordinal_null <- function(y,
       beta = pseudo$beta,
       g = pseudo$g,
       trace = pseudo$out,
-      elapsed_time = Sys.time() - null_start
+      elapsed_time = Sys.time() - null_start,
+      link = link
     ))
   }
 
@@ -363,7 +373,8 @@ fit_ordinal_null <- function(y,
       ids = ids,
       maxiter = maxiter,
       minerr = minerr,
-      outdir = outdir
+      outdir = outdir,
+      link = link
     )
     message(paste("Ordinal null model time:", format(fit_ordinal$elapsed_time)))
 

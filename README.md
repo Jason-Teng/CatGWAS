@@ -1,42 +1,6 @@
 # CatGWAS
 
-**CatGWAS** provides a unified framework for genome-wide association studies (GWAS) with **categorical phenotypes**, including both **nominal** and **ordinal** traits.
-
-The package implements multiple methods under a consistent interface, allowing flexible comparison and scalable analysis.
-
----
-
-## Supported methods
-
-The package currently supports several GWAS testing strategies under a common interface.
-
-| Method | Description | Nominal | Ordinal |
-|---|---|---:|---:|
-| `score` | Score test using the fitted null model | Yes | Yes |
-| `p3d` | Population parameters previously determined | Yes | Yes |
-| `psr` | Pseudo-response based marker scan | Yes | Yes |
-| `psrsd` | Pseudo-response method with ordinal-specific structure | No | Yes |
-| `glm` | Generalized linear model baseline without kinship correction | Yes | Yes |
-| `exact` | Marker-specific model fitting | Yes | Yes |
-
-Some methods require a null model, while others can be run directly. When needed, `CatGWAS` fits the null model automatically unless a precomputed null model or variance component estimate is supplied.
-
----
-## Null-model variance component estimation
-
-For mixed-model GWAS, several marker-scanning methods require variance components to be estimated under the null model before testing markers.
-
-For nominal traits, `CatGWAS` currently supports two null-model variance-component strategies:
-
-| Null method | Description | Speed | Bias |
-|---|---|---:|---:|
-| `pseudo` | Pseudo-response based variance-component estimation | Faster | May be more approximate |
-| `laplace` | Laplace approximation for the nominal mixed model | Slower | Usually less biased |
-
-The Laplace method is computationally more expensive than the pseudo-response method, but it only needs to be fitted once under the null model. After the variance components are estimated, they can be reused across all markers in the genome-wide scan.
-
-This makes the Laplace approach especially useful when the goal is to obtain more accurate variance-component estimates before applying faster marker-scanning methods such as score, P3D, or pseudo-response based tests.
-
+GWAS for **nominal** and **ordinal** categorical phenotypes.
 
 ---
 
@@ -50,163 +14,140 @@ library(CatGWAS)
 
 ---
 
-## Example Workflow
-
-### Load data
+## Examples
 
 ```r
 data(z)
 data(kk)
 data(nominal)
 data(ordinal)
-```
-
-### Subset SNPs (for fast example)
-
-```r
 zz <- z[1:5, ]
-```
 
----
-
-## Ordinal GWAS
-
-```r
+# Ordinal, default cprobit
 res_ord <- categorical_gwas(
-  y = ordinal,
-  zz = zz,
-  kk = kk,
+  y = ordinal, zz = zz, kk = kk,
   trait_type = "ordinal",
   method = c("score", "psrsd")
 )
 
-res_ord$results$score
-res_ord$results$psrsd
-```
-
----
-
-## Nominal GWAS
-
-```r
-res_nom <- categorical_gwas(
-  y = nominal,
-  zz = zz,
-  kk = kk,
-  trait_type = "nominal",
-  method = c("score", "psr")
-)
-
-res_nom$results$score
-```
-
-## Parallel score-test scanning
-
-The `score` method can run the per-marker calculations in parallel using
-base-R PSOCK clusters, which work on Windows, macOS, and Linux.
-
-```r
-# Serial (default)
-res_serial <- categorical_gwas(
+# Ordinal, cumulative logit, parallel score
+res_ord_clogit <- categorical_gwas(
   y = ordinal, zz = zz, kk = kk,
-  trait_type = "ordinal", method = "score",
-  n_cores = 1L
-)
-
-# Parallel – 4 workers; null model is still fitted serially
-res_parallel <- categorical_gwas(
-  y = ordinal, zz = zz, kk = kk,
-  trait_type = "ordinal", method = "score",
+  trait_type = "ordinal",
+  method = "score",
+  link = "clogit",
   n_cores = 4L
 )
-```
 
-Key points:
-
-* `n_cores = 1L` (the default) uses the existing serial loop – output is
-  identical to previous package versions.
-* `n_cores > 1` spawns PSOCK workers.  The null model is **always** fitted
-  once in the main process before workers are created; only the
-  per-marker score calculations are distributed.
-* You must supply `n_cores` explicitly.  The package never auto-detects
-  available cores.
-* `n_cores` is validated on entry – a clear error is raised for non-positive
-  or non-integer values.
-* Worker clusters are always stopped on exit via `on.exit()`.
-
----
-
-
-If variance components have already been estimated, for example from a Laplace approximation or another null-model routine, they can be supplied directly when supported by the selected method.
-
-A typical structure is:
-
-```r
+# Nominal, Laplace null
 res_nom <- categorical_gwas(
-  y = nominal,
-  zz = zz,
-  kk = kk,
+  y = nominal, zz = zz, kk = kk,
+  trait_type = "nominal",
+  method = c("score", "psr"),
+  null_method = "laplace"
+)
+
+# Reuse a precomputed variance component
+res_nom_vc <- categorical_gwas(
+  y = nominal, zz = zz, kk = kk,
   trait_type = "nominal",
   method = c("score", "psr"),
   vc = vc
 )
 ```
 
-This is useful when separating variance-component estimation from genome-wide marker testing.
-
----
-
-
-## Input Format
-
-* `z`
-  Genotype matrix (**markers × individuals**)
-
-* `kk`
-  Kinship matrix (**individuals × individuals**)
-
-* `nominal`
-  Factor vector
-
-* `ordinal`
-  Factor vector
-
----
-
-## Output structure
-
-The main function returns a list. The most important component is usually `results`.
-
 ```r
-names(res_nom)
-names(res_nom$results)
+res_ord$results$score
+res_nom$results$score
 ```
 
-Each method returns a data frame containing marker-level test results. The exact columns may depend on the selected method, but commonly include:
+---
+
+## Functions
+
+### `categorical_gwas()`
+
+Main interface. All analyses go through this function.
+
+| Argument | Description |
+|---|---|
+| `y` | Phenotype (factor or category-indicator matrix) |
+| `zz` | Genotype matrix, **markers × individuals** |
+| `kk` | Kinship matrix, **individuals × individuals** |
+| `trait_type` | `"ordinal"` or `"nominal"` |
+| `method` | One or more scanning methods (see below) |
+| `null_method` | Null-model method for nominal; default `"pseudo"` |
+| `null_fit` | Precomputed null model (optional) |
+| `vc` | Precomputed variance component (optional) |
+| `link` | Ordinal cumulative link (ignored for nominal); default `"cprobit"` |
+| `n_cores` | Cores for parallel **score** scanning (default `1L`) |
+
+#### `method`
+
+| Value | Description | Nominal | Ordinal |
+|---|---|---:|---:|
+| `score` | Score test using the fitted null model | Yes | Yes |
+| `p3d` | Population parameters previously determined | Yes | Yes |
+| `psr` | Pseudo-response marker scan | Yes | Yes |
+| `psrsd` | Pseudo-response with ordinal-specific structure | No | Yes |
+| `glm` | GLM without kinship correction | Yes | Yes |
+| `exact` | Marker-specific model fitting | Yes | Yes |
+
+`score`, `p3d`, `psr`, and `psrsd` need a null model (`kk` required). `glm` and `exact` do not. If `null_fit` / `vc` are not supplied, the null is fitted automatically.
+
+#### `null_method` (nominal only)
+
+Default is `"pseudo"`. Ordinal traits always use pseudo and ignore this argument.
+
+| Value | Description |
+|---|---|
+| `"pseudo"` | Pseudo-response variance-component estimation (default) |
+| `"laplace"` | Laplace approximation |
+
+#### `link` (ordinal only)
+
+| Value | Model |
+|---|---|
+| `"cprobit"` | Cumulative probit (default) |
+| `"clogit"` | Cumulative logit (proportional odds) |
+
+Used in the ordinal null model and in P3D, GLM, and exact. Score, PSR, and PSRSD inherit it from the null.
+
+#### `n_cores`
+
+Used by `method = "score"` only. `1L` is serial. `n_cores > 1` uses PSOCK workers. The null model is always fitted serially; only per-marker score calculations are parallelised.
+
+---
+
+## Input
+
+| Object | Format |
+|---|---|
+| `zz` | Genotype matrix, **markers × individuals** |
+| `kk` | Kinship matrix, **individuals × individuals** |
+| `nominal` | Factor |
+| `ordinal` | Factor |
+
+---
+
+## Output
+
+`categorical_gwas()` returns a list. Marker results are in `result` (one method) or `results` (several methods).
 
 | Column | Meaning |
 |---|---|
 | `SNP` | Marker index |
-| `Effect` or category-specific effects | Estimated marker effect |
+| `Effect` | Estimated marker effect |
 | `StdErr` | Standard error |
-| `Wald` or test statistic | Marker-level test statistic |
-| `pvalue` | Marker-level p-value |
-| `iter` | Number of iterations, when applicable |
-| `err` | Convergence error, when applicable |
+| `Score` / `Wald` | Test statistic |
+| `p` | P-value |
+| `iter`, `err` | Convergence, when applicable |
 
-For example:
-
-```r
-head(res_nom$results$score)
-```
+The fitted null, when used, is returned as `null_fit`. For ordinal scans, `link` is also returned.
 
 ---
 
 ## Citation
-
-If you use `CatGWAS`, please cite the related manuscript once available.
-
-For now, you may cite the GitHub repository:
 
 ```text
 Teng, C.-S. CatGWAS: Genome-wide association studies for categorical phenotypes.
@@ -217,7 +158,5 @@ GitHub repository: https://github.com/Jason-Teng/CatGWAS
 
 ## Author
 
-Chin-Sheng Teng 
+Chin-Sheng Teng  
 University of California, Riverside
-
----
