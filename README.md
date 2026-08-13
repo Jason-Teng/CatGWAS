@@ -82,6 +82,7 @@ Main interface. All analyses go through this function.
 | `link` | Ordinal cumulative link (ignored for nominal); default `"cprobit"` |
 | `n_cores` | Cores for parallel **score** scanning (default `1L`) |
 
+## Arguments
 #### `method`
 
 | Value | Description | Nominal | Ordinal |
