@@ -76,7 +76,7 @@ Main interface. All analyses go through this function.
 | `kk` | Kinship matrix, **individuals × individuals** |
 | `trait_type` | `"ordinal"` or `"nominal"` |
 | `method` | One or more scanning methods (see below) |
-| `null_method` | Null-model variance-component method (see below) |
+| `null_method` | Nominal only. Null-model method; default `"pseudo"` |
 | `null_fit` | Precomputed null model (optional) |
 | `vc` | Precomputed variance component (optional) |
 | `link` | Ordinal cumulative link (ignored for nominal) |
@@ -95,12 +95,14 @@ Main interface. All analyses go through this function.
 
 `score`, `p3d`, `psr`, and `psrsd` need a null model (`kk` required). `glm` and `exact` do not. If `null_fit` / `vc` are not supplied, the null is fitted automatically.
 
-#### `null_method`
+#### `null_method` (nominal only)
 
-| Value | Trait | Description |
-|---|---|---|
-| `pseudo` | Both | Pseudo-response variance-component estimation (default) |
-| `laplace` | Nominal only | Laplace approximation |
+Default is `"pseudo"`. Ordinal traits always use pseudo and ignore this argument.
+
+| Value | Description |
+|---|---|
+| `"pseudo"` | Pseudo-response variance-component estimation (default) |
+| `"laplace"` | Laplace approximation |
 
 #### `link` (ordinal only)
 
