@@ -22,7 +22,10 @@ data(kk)
 data(nominal)
 data(ordinal)
 zz <- z[1:5, ]
+```
 
+Ordinal
+```r
 # Ordinal, default cprobit
 res_ord <- categorical_gwas(
   y = ordinal, zz = zz, kk = kk,
@@ -39,14 +42,31 @@ res_ord_clogit <- categorical_gwas(
   n_cores = 4L
 )
 
-# Nominal, Laplace null
+# Reuse a fitted null
+res_reuse <- categorical_gwas(
+  y = ordinal, zz = zz, kk = kk,
+  trait_type = "ordinal",
+  method = c("score", "psr"),
+  link = "clogit",
+  null_fit = res_ord_clogit$null_fit
+)
+```
+
+Nominal
+```r
+# Default pseudo null
 res_nom <- categorical_gwas(
+  y = nominal, zz = zz, kk = kk,
+  trait_type = "nominal",
+  method = c("score", "psr")
+)
+# Laplace null
+res_nom_laplace <- categorical_gwas(
   y = nominal, zz = zz, kk = kk,
   trait_type = "nominal",
   method = c("score", "psr"),
   null_method = "laplace"
 )
-
 # Reuse a precomputed variance component
 res_nom_vc <- categorical_gwas(
   y = nominal, zz = zz, kk = kk,
