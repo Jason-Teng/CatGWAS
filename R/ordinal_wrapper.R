@@ -25,12 +25,22 @@ ordinal_gwas <- function(y,
                          outdir = NULL,
                          maxiter = 100,
                          minerr = 1e-8,
-                         n_cores = 1L) {
+                         n_cores = 1L,
+                         link = "probit") {
 
   allowed_methods <- c("score", "p3d", "psr", "psrsd", "exact", "glm")
   method <- match.arg(method, choices = allowed_methods, several.ok = TRUE)
   null_method <- match.arg(null_method)
   n_cores <- .validate_n_cores(n_cores)
+  link <- ordinal_link(link)$name
+
+  if (!is.null(null_fit) && !is.null(null_fit$link) && !identical(null_fit$link, link)) {
+    warning("Supplied null_fit used link '", null_fit$link,
+            "' but link = '", link, "' was requested. ",
+            "Score/PSR/PSRSD use the supplied null_fit as-is; ",
+            "P3D/GLM/exact use the requested link.",
+            call. = FALSE)
+  }
 
   Yfull <- ordinal_make_Y(y)
   zz <- as.matrix(zz)
@@ -67,7 +77,8 @@ ordinal_gwas <- function(y,
       vc = vc,
       maxiter = maxiter,
       minerr = minerr,
-      outdir = outdir
+      outdir = outdir,
+      link = link
     )
   }
 
@@ -106,7 +117,8 @@ ordinal_gwas <- function(y,
         n = n,
         maxiter = maxiter,
         minerr = minerr,
-        outdir = outdir
+        outdir = outdir,
+        link = link
       )
     }
 
@@ -145,7 +157,8 @@ ordinal_gwas <- function(y,
         x0 = x0,
         c = c,
         n = n,
-        outdir = outdir
+        outdir = outdir,
+        link = link
       )
     }
 
@@ -160,7 +173,8 @@ ordinal_gwas <- function(y,
         theta0 = 0,
         maxiter = maxiter,
         minerr = minerr,
-        outdir = outdir
+        outdir = outdir,
+        link = link
       )
       error_snps[[one_method]] <- attr(res, "error_snps")
     }
@@ -176,6 +190,7 @@ ordinal_gwas <- function(y,
     return(list(
       trait_type = "ordinal",
       method = method,
+      link = link,
       result = results[[method]],
       error_snps = error_snps[[method]],
       null_fit = if (method %in% methods_need_null) null_fit else NULL,
@@ -186,6 +201,7 @@ ordinal_gwas <- function(y,
   list(
     trait_type = "ordinal",
     method = method,
+    link = link,
     results = results,
     error_snps = error_snps,
     null_fit = if (any(method %in% methods_need_null)) null_fit else NULL,

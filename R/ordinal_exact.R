@@ -11,12 +11,15 @@ scan_exact_ordinal <- function(y, kk, zz, x0, c = NULL, n = NULL,
                                lower = -1e5,
                                upper = 1e5,
                                ridge = 1e-5,
-                               outdir = NULL) {
+                               outdir = NULL,
+                               link = "probit") {
   if (is.null(c)) c <- ncol(y)
   if (is.null(n)) n <- nrow(y)
   if (!requireNamespace("Matrix", quietly = TRUE)) {
     stop("Package 'Matrix' is required.")
   }
+
+  lf <- ordinal_link(link)
 
   kk <- as.matrix(kk)
   zz <- as.matrix(zz)
@@ -63,7 +66,7 @@ scan_exact_ordinal <- function(y, kk, zz, x0, c = NULL, n = NULL,
           eta_j <- g0[j] + z[j] * gamma
 
           for (kkk in 1:c) {
-            mu[kkk] <- pnorm(a[kkk + 1] + eta_j) - pnorm(a[kkk] + eta_j)
+            mu[kkk] <- lf$p(a[kkk + 1] + eta_j) - lf$p(a[kkk] + eta_j)
             if (mu[kkk] < 1e-4) mu[kkk] <- 1e-4
             if (mu[kkk] > 1 - 1e-4) mu[kkk] <- 1 - 1e-4
           }
@@ -72,12 +75,12 @@ scan_exact_ordinal <- function(y, kk, zz, x0, c = NULL, n = NULL,
           d <- matrix(0, c, c - 1)
           if (c > 2) {
             for (kkk in 2:(c - 1)) {
-              d[kkk, kkk - 1] <- -dnorm(a[kkk] + eta_j)
-              d[kkk, kkk] <- dnorm(a[kkk + 1] + eta_j)
+              d[kkk, kkk - 1] <- -lf$d(a[kkk] + eta_j)
+              d[kkk, kkk] <- lf$d(a[kkk + 1] + eta_j)
             }
           }
-          d[1, 1] <- dnorm(a[2] + eta_j)
-          d[c, c - 1] <- -dnorm(a[c] + eta_j)
+          d[1, 1] <- lf$d(a[2] + eta_j)
+          d[c, c - 1] <- -lf$d(a[c] + eta_j)
 
           w <- diag(1 / as.numeric(mu))
           dwd <- solve(t(d) %*% w %*% d + diag(c - 1) * ridge)

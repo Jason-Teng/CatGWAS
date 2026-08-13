@@ -18,6 +18,11 @@
 #'   serial computation. Parallelisation uses base-R PSOCK clusters and
 #'   therefore works on Windows, macOS, and Linux. The null model is always
 #'   fitted serially; only the per-marker score calculations are parallelised.
+#' @param link Ordinal cumulative link. Used only when
+#'   \code{trait_type = "ordinal"}. \code{"probit"} (the default) is the
+#'   cumulative probit model; \code{"clogit"} is the cumulative logit /
+#'   proportional-odds model. \code{"logit"} is accepted as an alias of
+#'   \code{"clogit"}. Ignored for nominal traits.
 #' @return A list of GWAS results.
 #' @export
 categorical_gwas <- function(y,
@@ -33,10 +38,16 @@ categorical_gwas <- function(y,
                              outdir = NULL,
                              maxiter = 100,
                              minerr = 1e-8,
-                             n_cores = 1L) {
+                             n_cores = 1L,
+                             link = "probit") {
 
   trait_type <- match.arg(trait_type)
   n_cores <- .validate_n_cores(n_cores)
+
+  if (trait_type == "nominal" && !identical(link, "probit")) {
+    warning("'link' is only used for ordinal traits and is ignored for nominal traits.",
+            call. = FALSE)
+  }
 
   if (trait_type == "ordinal") {
     if (is.null(method)) {
@@ -59,7 +70,8 @@ categorical_gwas <- function(y,
       outdir = outdir,
       maxiter = maxiter,
       minerr = minerr,
-      n_cores = n_cores
+      n_cores = n_cores,
+      link = link
     ))
   }
 

@@ -71,6 +71,8 @@ zz <- z[1:5, ]
 
 ## Ordinal GWAS
 
+The default ordinal model is the **cumulative probit** link. Set `link = "clogit"` for the **cumulative logit** (proportional odds) model. The two links differ only in the latent distribution used inside the IBLUP / pseudo-response loop (`pnorm`/`dnorm` vs `plogis`/`dlogis`).
+
 ```r
 res_ord <- categorical_gwas(
   y = ordinal,
@@ -82,6 +84,18 @@ res_ord <- categorical_gwas(
 
 res_ord$results$score
 res_ord$results$psrsd
+```
+
+```r
+# Cumulative logit / proportional odds
+res_ord_clogit <- categorical_gwas(
+  y = ordinal,
+  zz = zz,
+  kk = kk,
+  trait_type = "ordinal",
+  method = c("score", "glm"),
+  link = "clogit"
+)
 ```
 
 ---
