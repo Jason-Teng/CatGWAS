@@ -12,7 +12,7 @@ scan_exact_ordinal <- function(y, kk, zz, x0, c = NULL, n = NULL,
                                upper = 1e5,
                                ridge = 1e-5,
                                outdir = NULL,
-                               link = "probit") {
+                               link = "cprobit") {
   if (is.null(c)) c <- ncol(y)
   if (is.null(n)) n <- nrow(y)
   if (!requireNamespace("Matrix", quietly = TRUE)) {

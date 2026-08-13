@@ -50,7 +50,7 @@ ordinal_compact_rr <- function(rr, n, q, ids = NULL) {
 # Inner loop: ordinal IBLUP / pseudo-response generation
 # ============================================================
 iblup_ordinal <- function(par, y, x, kk, maxiter = 100, minerr = 1e-8,
-                          link = "probit") {
+                          link = "cprobit") {
 
   y <- as.matrix(y)
   kk <- as.matrix(kk)
@@ -198,7 +198,7 @@ fit_ordinal_outer <- function(y,
                               lower = -1e5,
                               upper = 1e5,
                               outdir = NULL,
-                              link = "probit") {
+                              link = "cprobit") {
 
   y <- as.matrix(y)
   kk <- as.matrix(kk)
@@ -315,7 +315,7 @@ fit_ordinal_null <- function(y,
                              maxiter = 100,
                              minerr = 1e-8,
                              outdir = NULL,
-                             link = "probit") {
+                             link = "cprobit") {
 
   null_method <- match.arg(null_method)
   link <- ordinal_link(link)$name

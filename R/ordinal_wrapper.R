@@ -26,7 +26,7 @@ ordinal_gwas <- function(y,
                          maxiter = 100,
                          minerr = 1e-8,
                          n_cores = 1L,
-                         link = "probit") {
+                         link = "cprobit") {
 
   allowed_methods <- c("score", "p3d", "psr", "psrsd", "exact", "glm")
   method <- match.arg(method, choices = allowed_methods, several.ok = TRUE)

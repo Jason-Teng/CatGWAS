@@ -19,9 +19,10 @@
 #'   therefore works on Windows, macOS, and Linux. The null model is always
 #'   fitted serially; only the per-marker score calculations are parallelised.
 #' @param link Ordinal cumulative link. Used only when
-#'   \code{trait_type = "ordinal"}. \code{"probit"} (the default) is the
+#'   \code{trait_type = "ordinal"}. \code{"cprobit"} (the default) is the
 #'   cumulative probit model; \code{"clogit"} is the cumulative logit /
-#'   proportional-odds model. \code{"logit"} is accepted as an alias of
+#'   proportional-odds model. \code{"probit"} is accepted as an alias of
+#'   \code{"cprobit"}. \code{"logit"} is accepted as an alias of
 #'   \code{"clogit"}. Ignored for nominal traits.
 #' @return A list of GWAS results.
 #' @export
@@ -39,12 +40,12 @@ categorical_gwas <- function(y,
                              maxiter = 100,
                              minerr = 1e-8,
                              n_cores = 1L,
-                             link = "probit") {
+                             link = "cprobit") {
 
   trait_type <- match.arg(trait_type)
   n_cores <- .validate_n_cores(n_cores)
 
-  if (trait_type == "nominal" && !identical(link, "probit")) {
+  if (trait_type == "nominal" && !identical(link, "cprobit")) {
     warning("'link' is only used for ordinal traits and is ignored for nominal traits.",
             call. = FALSE)
   }

@@ -19,7 +19,7 @@ categorical_gwas(
   maxiter = 100,
   minerr = 1e-08,
   n_cores = 1L,
-  link = "probit"
+  link = "cprobit"
 )
 }
 \arguments{
@@ -56,9 +56,10 @@ therefore works on Windows, macOS, and Linux. The null model is always
 fitted serially; only the per-marker score calculations are parallelised.}
 
 \item{link}{Ordinal cumulative link. Used only when
-\code{trait_type = "ordinal"}. \code{"probit"} (the default) is the
+\code{trait_type = "ordinal"}. \code{"cprobit"} (the default) is the
 cumulative probit model; \code{"clogit"} is the cumulative logit /
-proportional-odds model. \code{"logit"} is accepted as an alias of
+proportional-odds model. \code{"probit"} is accepted as an alias of
+\code{"cprobit"}. \code{"logit"} is accepted as an alias of
 \code{"clogit"}. Ignored for nominal traits.}
 }
 \value{

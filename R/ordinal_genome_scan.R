@@ -60,7 +60,7 @@ scan_score_ordinal <- function(ps, rr, par, kk, zz, x0, c, n = NULL, outdir = NU
 # ============================================================
 scan_p3d_ordinal <- function(y, kk, zz, x0, par, c, n = NULL,
                              maxiter = 100, minerr = 1e-8, outdir = NULL,
-                             link = "probit") {
+                             link = "cprobit") {
   if (is.null(n)) n <- nrow(y)
   if (!requireNamespace("Matrix", quietly = TRUE)) {
     stop("Package 'Matrix' is required.")
@@ -287,7 +287,7 @@ scan_psrsd_ordinal <- function(ps, rr, kk, zz, x0, c, n = NULL,
 # ============================================================
 ordinal_glm_one <- function(z, y, x, c, n,
                             maxiter = 100, minerr = 1e-8,
-                            link = "probit") {
+                            link = "cprobit") {
   if (!requireNamespace("Matrix", quietly = TRUE)) {
     stop("Package 'Matrix' is required.")
   }
@@ -361,7 +361,7 @@ ordinal_glm_one <- function(z, y, x, c, n,
 }
 
 scan_glm_ordinal <- function(zz, y, x0, c = NULL, n = NULL, outdir = NULL,
-                             link = "probit") {
+                             link = "cprobit") {
   if (is.null(c)) c <- ncol(y)
   if (is.null(n)) n <- nrow(y)
 
