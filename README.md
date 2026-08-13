@@ -76,10 +76,10 @@ Main interface. All analyses go through this function.
 | `kk` | Kinship matrix, **individuals × individuals** |
 | `trait_type` | `"ordinal"` or `"nominal"` |
 | `method` | One or more scanning methods (see below) |
-| `null_method` | Nominal only. Null-model method; default `"pseudo"` |
+| `null_method` | Null-model method for nominal; default `"pseudo"` |
 | `null_fit` | Precomputed null model (optional) |
 | `vc` | Precomputed variance component (optional) |
-| `link` | Ordinal cumulative link (ignored for nominal) |
+| `link` | Ordinal cumulative link (ignored for nominal); default `"cprobit"` |
 | `n_cores` | Cores for parallel **score** scanning (default `1L`) |
 
 #### `method`
@@ -110,14 +110,12 @@ Default is `"pseudo"`. Ordinal traits always use pseudo and ignore this argument
 |---|---|
 | `"cprobit"` | Cumulative probit (default) |
 | `"clogit"` | Cumulative logit (proportional odds) |
-| `"probit"` | Alias of `"cprobit"` |
-| `"logit"` | Alias of `"clogit"` |
 
-Used in the ordinal null model and in P3D, GLM, and exact. Score, PSR, and PSRSD inherit it from the null (`ps`, `rr`).
+Used in the ordinal null model and in P3D, GLM, and exact. Score, PSR, and PSRSD inherit it from the null.
 
 #### `n_cores`
 
-Used by `method = "score"` only. `1L` is serial. `n_cores > 1` uses PSOCK workers (Windows / macOS / Linux). The null model is always fitted serially; only per-marker score calculations are parallelised. Works with either ordinal link.
+Used by `method = "score"` only. `1L` is serial. `n_cores > 1` uses PSOCK workers. The null model is always fitted serially; only per-marker score calculations are parallelised.
 
 ---
 
@@ -125,7 +123,7 @@ Used by `method = "score"` only. `1L` is serial. `n_cores > 1` uses PSOCK worker
 
 | Object | Format |
 |---|---|
-| `z` / `zz` | Genotype matrix, **markers × individuals** |
+| `zz` | Genotype matrix, **markers × individuals** |
 | `kk` | Kinship matrix, **individuals × individuals** |
 | `nominal` | Factor |
 | `ordinal` | Factor |
