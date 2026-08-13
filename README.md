@@ -76,6 +76,7 @@ res_nom_vc <- categorical_gwas(
 )
 ```
 
+Results
 ```r
 res_ord$results$score
 res_nom$results$score
