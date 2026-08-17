@@ -185,7 +185,7 @@ res_ord_clogit <- categorical_gwas(
 The link function is used in the ordinal null model and inherited by methods that depend on the fitted null model.
 
 
-### `n_cores`
+## `n_cores`
 
 Used by `method = "score"` only. `1L` is serial. `n_cores > 1` uses PSOCK workers. The null model is always fitted serially; only per-marker score calculations are parallelised.
 
